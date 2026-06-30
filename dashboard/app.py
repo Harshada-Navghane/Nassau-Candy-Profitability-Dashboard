@@ -286,3 +286,66 @@ fig9 = px.bar(
 )
 
 st.plotly_chart(fig9, use_container_width=True)
+
+#pareto analysis, sorting the products by profit.
+
+pareto_df = (
+    product_summary
+    .sort_values(by="Gross Profit", ascending=False)
+    .reset_index(drop=True)
+)
+
+st.subheader("Pareto Analysis")
+
+#st.dataframe(pareto_df)
+
+pareto_df["Cumulative Profit"] = (
+    pareto_df["Gross Profit"].cumsum()
+)
+#st.write(pareto_df)
+
+#Calculate Cumulative Profit %
+
+pareto_df["Cumulative Profit %"] = (
+    pareto_df["Cumulative Profit"] /
+    pareto_df["Gross Profit"].sum()
+) * 100
+
+st.write(pareto_df)
+
+#creating pareto chart
+
+import plotly.graph_objects as go
+
+fig10 = go.Figure()
+
+#Bar chart (Gross Profit)
+
+fig10.add_bar (
+    x=pareto_df["Product Name"],
+    y=["Gross Profit"],
+    name="Gross Profit"
+)
+
+# Line Chart (Cumulative Profit %)
+fig10.add_scatter(
+    x=pareto_df["Product Name"],
+    y=pareto_df["Cumulative Profit %"],
+    mode="lines+markers",
+    name="Cumulative Profit %",
+    yaxis="y2"
+)
+
+fig10.update_layout(
+    title="Pareto Analysis of Product Profitability",
+    xaxis_title="Product Name",
+    yaxis_title="Gross Profit",
+    yaxis2=dict(
+        title="Cumulative Profit %",
+        overlaying="y",
+        side="right",
+        range=[0, 100]
+    )
+)
+
+st.plotly_chart(fig10, use_container_width=True)
