@@ -16,7 +16,7 @@ df["Order Date"] = pd.to_datetime(df["Order Date"])
 min_date = df["Order Date"].min()
 max_date = df["Order Date"].max()
 
-#creating a sidebar for filterss
+#creating a sidebar for filters
 
 st.sidebar.title("Filters")
 
@@ -37,12 +37,25 @@ selected_dates = st.sidebar.date_input(
 start_date = pd.to_datetime(selected_dates[0])
 end_date = pd.to_datetime(selected_dates[1])
 
+#creating a text input for product search in the sidebar
+product_search = st.sidebar.text_input(
+    "Search Product"
+)
+
 # Filter the dataframe based on selected division and date range
 filtered_df = df[
     (df["Division"] == selected_division) &
     (df["Order Date"] >= start_date) &
     (df["Order Date"] <= end_date)
 ]
+#product search filter
+if product_search:
+    filtered_df = filtered_df[
+        filtered_df["Product Name"].str.contains(
+            product_search,
+            case=False
+        )
+    ]
 
 
 #create one master dataframe to store all the metrics and KPIs for the selected division
@@ -346,8 +359,8 @@ fig10 = go.Figure()
 #Bar chart (Gross Profit)
 
 fig10.add_bar (
-    x=pareto_df["Product Name"],
-    y=["Gross Profit"],
+    x=pareto_df["Product Name"],    
+    y=pareto_df["Gross Profit"],
     name="Gross Profit"
 )
 
@@ -373,3 +386,4 @@ fig10.update_layout(
 )
 
 st.plotly_chart(fig10, use_container_width=True)
+
