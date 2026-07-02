@@ -10,7 +10,13 @@ st.title("Nassau Candy Profitability Dashboard")
 # Load the dataset
 df= pd.read_csv(r"C:\Users\harsh\OneDrive\Nassau_Project\data\Cleaned_Nassau_Candy_Distributor.csv")
 
-#creating a sidebar for filters
+# Converting the "Order Date" text column to datetime format
+df["Order Date"] = pd.to_datetime(df["Order Date"])
+
+min_date = df["Order Date"].min()
+max_date = df["Order Date"].max()
+
+#creating a sidebar for filterss
 
 st.sidebar.title("Filters")
 
@@ -19,7 +25,25 @@ selected_division = st.sidebar.selectbox(
     df["Division"].unique()
 )
 
-filtered_df = df[df["Division"] == selected_division]
+#creating a date range filter in the sidebar
+selected_dates = st.sidebar.date_input(
+    "Select Date Range",
+    value=(min_date, max_date),
+    min_value=min_date,
+    max_value=max_date
+)
+ 
+ #Convert selected dates
+start_date = pd.to_datetime(selected_dates[0])
+end_date = pd.to_datetime(selected_dates[1])
+
+# Filter the dataframe based on selected division and date range
+filtered_df = df[
+    (df["Division"] == selected_division) &
+    (df["Order Date"] >= start_date) &
+    (df["Order Date"] <= end_date)
+]
+
 
 #create one master dataframe to store all the metrics and KPIs for the selected division
 
