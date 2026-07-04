@@ -7,11 +7,17 @@ import plotly.express as px
 ## Page Title
 st.title("Nassau Candy Profitability Dashboard")
 
-# Load the dataset
-df= pd.read_csv(r"C:\Users\harsh\OneDrive\Nassau_Project\data\Cleaned_Nassau_Candy_Distributor.csv")
+#Loading the data from the CSV file 
+@st.cache_data
+def load_data():
+    df = pd.read_csv(
+        r"C:\Users\harsh\OneDrive\Nassau_Project\data\Cleaned_Nassau_Candy_Distributor.csv"
+    )
+    df["Order Date"] = pd.to_datetime(df["Order Date"])     # Converting the "Order Date" text column to datetime format
+    return df
 
-# Converting the "Order Date" text column to datetime format
-df["Order Date"] = pd.to_datetime(df["Order Date"])
+df = load_data()
+
 
 min_date = df["Order Date"].min()
 max_date = df["Order Date"].max()
@@ -57,6 +63,14 @@ if product_search:
         )
     ]
 
+#Margin Threshold Slider
+margin_threshold = st.sidebar.slider(
+    "Minimum Gross Margin (%)",
+    min_value=0,
+    max_value=100,
+    value=0
+)
+
 
 #create one master dataframe to store all the metrics and KPIs for the selected division
 
@@ -81,6 +95,10 @@ product_summary["Profit per Unit"] = (
     product_summary["Units"]
 )
 
+# Filter the product summary based on the margin threshold
+filtered_product_summary = product_summary[
+    product_summary["Gross Margin %"] >= margin_threshold
+]
 
 #KPI
 total_sales = filtered_df["Sales"].sum()
@@ -98,6 +116,8 @@ col4.metric("Units Sold",f"{total_units:,.0f}")
 
 st.divider()
 
+st.header("📊 Dashboard Analysis")
+
 with st.expander("Dataset Preview"):
     st.write("Filtered Dataset Preview")
     st.dataframe(filtered_df.head())
@@ -105,6 +125,8 @@ with st.expander("Dataset Preview"):
 #Division Performance Chart
 #Comparison of all divisions → using df instead of filtered_df to show all divisions in the chart
 
+st.divider()
+st.header("🏢 Division Analysis")
 
 st.subheader("Division Performance")
 
@@ -116,7 +138,7 @@ df.groupby("Division")
 }).reset_index()
 )
 
-st.write(division_summary)
+#st.write(division_summary)
 
 fig =px.bar(
     division_summary,
@@ -155,14 +177,16 @@ st.plotly_chart(fig7, use_container_width=True)
 
 #Top Products by Profit
 
+st.divider()
+st.header("📦 Product Profitability Analysis")
 
 st.subheader("Top Products By Profit")
 top_products = (
-    product_summary
+    filtered_product_summary
     .sort_values(by="Gross Profit", ascending=False)
     .head(10)
 )
-st.write(top_products)
+#st.write(top_products)
 
 st.bar_chart(
     top_products.set_index("Product Name")
@@ -175,16 +199,21 @@ fig2 = px.bar(
     orientation = "h",  
     title = "Top Produts by Gross Profit"
 )
+
+fig2.update_layout(
+    yaxis=dict(categoryorder="total ascending")
+)
+
 st.plotly_chart(fig2, use_container_width=True)
 
 #Top Products by Gross Margin %
 
 top_margin_products = (
-    product_summary
+    filtered_product_summary
     .sort_values(by="Gross Margin %", ascending=False)
     .head(10)
 )
-st.write(top_margin_products.head(10))
+#st.write(top_margin_products.head(10))
 
 #Creating the Gross Margin Chart
 
@@ -197,16 +226,19 @@ fig3 = px.bar(
     orientation = "h",
     title = "Top 10 Products by Gross Margin(%)"
 )
+fig3.update_layout(
+    yaxis=dict(categoryorder="total ascending")
+)
 st.plotly_chart(fig3, use_container_width=True)
 
 #calculating High-sales / low-margin products
 
-avg_sales = product_summary["Sales"].mean()
-avg_margin = product_summary["Gross Margin %"].mean()
+avg_sales = filtered_product_summary["Sales"].mean()
+avg_margin = filtered_product_summary["Gross Margin %"].mean()
 
-high_sales_low_margin = product_summary[
-    (product_summary["Sales"] > avg_sales) &
-    (product_summary["Gross Margin %"] < avg_margin)
+high_sales_low_margin = filtered_product_summary[
+    (filtered_product_summary["Sales"] > avg_sales) &
+    (filtered_product_summary["Gross Margin %"] < avg_margin)
 ]
 
 st.subheader("High Sales, Low Margin Products")
@@ -224,16 +256,24 @@ fig4 = px.bar(
     orientation  = "h",
     title = "High Sales, Low Margin Products"
     )
-
+fig4.update_layout(
+    yaxis=dict(categoryorder="total ascending")
+)
 st.plotly_chart(fig4,use_container_width=True)
+
+st.info(
+    "💡 Business Insight: These products generate above-average sales but below-average margins. "
+    "Review pricing strategies, supplier costs, or discounts to improve profitability."
+)
 
 #Calculating Low-sales / low-profit products
 
-avg_profit = product_summary["Gross Profit"].mean()
 
-low_sales_low_profit = product_summary[
-    (product_summary["Sales"] < avg_sales) &
-    (product_summary["Gross Profit"] < avg_profit)
+avg_profit = filtered_product_summary["Gross Profit"].mean()
+
+low_sales_low_profit = filtered_product_summary[
+    (filtered_product_summary["Sales"] < avg_sales) &
+    (filtered_product_summary["Gross Profit"] < avg_profit)
 ]
 
 
@@ -249,19 +289,26 @@ fig5 = px.bar(
     orientation="h",
     title="Low Sales, Low Profit Products"
 )
-
+fig5.update_layout(
+    yaxis=dict(categoryorder="total ascending")
+)
 st.plotly_chart(fig5, use_container_width=True)
 
+st.info(
+    "💡 Business Insight: These products contribute little to both revenue and profit. "
+    "Consider discontinuing them, bundling them with popular products, or running targeted promotions."
+)
+st.divider()
 #Calculating Profit Contribution % for each product
 
-product_summary["Profit Contribution %"] = (
-    product_summary["Gross Profit"] /
-    product_summary["Gross Profit"].sum()
+filtered_product_summary["Profit Contribution %"] = (
+    filtered_product_summary["Gross Profit"] /
+    filtered_product_summary["Gross Profit"].sum()
 ) * 100
 
 #Calculating Top 10 Profit Contributors
 top_profit_contributors = (
-    product_summary
+    filtered_product_summary
     .sort_values(by="Profit Contribution %", ascending=False)
     .head()
 )
@@ -279,15 +326,20 @@ fig6 = px.bar(
     orientation="h",
     title="Top Products by Profit Contribution (%)"
 )
-
+fig6.update_layout(
+    yaxis=dict(categoryorder="total ascending")
+)
 st.plotly_chart(fig6, use_container_width=True)
 
 #the Scatter Plot for Cost vs Sales Diagnostics
 
+st.divider()
+st.header("💰 Cost vs Margin Diagnostics")
+
 st.subheader("Cost vs Sales Diagnostics")
 
 fig8 = px.scatter(
-    product_summary,
+    filtered_product_summary,
     x="Cost",
     y="Sales",
     color="Gross Margin %",
@@ -321,16 +373,26 @@ fig9 = px.bar(
     orientation="h",
     title="High Cost, Low Margin Products"
 )
+fig9.update_layout(
+    yaxis=dict(categoryorder="total ascending")
+)
 
 st.plotly_chart(fig9, use_container_width=True)
+
+st.info(
+    "💡 Business Insight: These products have above-average costs but below-average margins. "
+    "They should be prioritized for cost reduction or pricing optimization."
+)
 
 #pareto analysis, sorting the products by profit.
 
 pareto_df = (
-    product_summary
+    filtered_product_summary
     .sort_values(by="Gross Profit", ascending=False)
     .reset_index(drop=True)
 )
+st.divider()
+st.header("📈 Profit Concentration Analysis")
 
 st.subheader("Pareto Analysis")
 
@@ -348,7 +410,7 @@ pareto_df["Cumulative Profit %"] = (
     pareto_df["Gross Profit"].sum()
 ) * 100
 
-st.write(pareto_df)
+#st.write(pareto_df)
 
 #creating pareto chart
 
@@ -387,3 +449,7 @@ fig10.update_layout(
 
 st.plotly_chart(fig10, use_container_width=True)
 
+st.info(
+    "💡 Business Insight: A small number of products contribute to the majority of total profit. "
+    "Protecting and growing these high-performing products can have the greatest business impact."
+)
