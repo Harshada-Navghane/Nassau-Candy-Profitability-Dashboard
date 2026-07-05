@@ -1,8 +1,9 @@
-#adding KPI Cards
+#importing the required libraries
 
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from pathlib import Path
 
 ## Page Title
 st.title("Nassau Candy Profitability Dashboard")
@@ -10,10 +11,12 @@ st.title("Nassau Candy Profitability Dashboard")
 #Loading the data from the CSV file 
 @st.cache_data
 def load_data():
-    df = pd.read_csv("data/Cleaned_Nassau_Candy_Distributor.csv")
-    df["Order Date"] = pd.to_datetime(df["Order Date"])     # Converting the "Order Date" text column to datetime format
-    return df
+    base_dir = Path(__file__).resolve().parent.parent
+    csv_path = base_dir / "data" / "Cleaned_Nassau_Candy_Distributor.csv"
 
+    df = pd.read_csv(csv_path)
+    df["Order Date"] = pd.to_datetime(df["Order Date"])
+    return df
 df = load_data()
 
 
