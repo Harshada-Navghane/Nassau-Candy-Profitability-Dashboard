@@ -26,7 +26,6 @@ max_date = df["Order Date"].max()
 #creating a sidebar for filters
 
 st.sidebar.title("Filters")
-
 selected_division = st.sidebar.selectbox(
     "Select Division",
     df["Division"].unique()
