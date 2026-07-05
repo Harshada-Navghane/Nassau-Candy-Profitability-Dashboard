@@ -52,7 +52,7 @@ The dashboard enables business stakeholders to:
 
 ## Dashboard Home
 
-![Dashboard Home](screenshots\dashboard_home.png)
+![Dashboard Home](screenshots/dashboard_home.png)
 
 ---
 
