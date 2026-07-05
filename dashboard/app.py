@@ -10,9 +10,7 @@ st.title("Nassau Candy Profitability Dashboard")
 #Loading the data from the CSV file 
 @st.cache_data
 def load_data():
-    df = pd.read_csv(
-        r"C:\Users\harsh\OneDrive\Nassau_Project\data\Cleaned_Nassau_Candy_Distributor.csv"
-    )
+    df = pd.read_csv("data/Cleaned_Nassau_Candy_Distributor.csv")
     df["Order Date"] = pd.to_datetime(df["Order Date"])     # Converting the "Order Date" text column to datetime format
     return df
 
