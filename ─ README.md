@@ -52,7 +52,7 @@ The dashboard enables business stakeholders to:
 
 ## Dashboard Home
 
-![Dashboard Home](screenshots/C:\Users\harsh\OneDrive\Nassau_Project\Screenshots\Cover Image.png)
+![Dashboard Home]("screenshots/C:\Users\harsh\OneDrive\Nassau_Project\Screenshots\Cover Image.png")
 
 ---
 
